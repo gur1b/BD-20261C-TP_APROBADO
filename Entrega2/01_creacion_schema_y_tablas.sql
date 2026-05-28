@@ -115,7 +115,7 @@ CREATE TABLE TP_APROBADO.Provincia (
 -- ============================================================================
 
 CREATE TABLE TP_APROBADO.Aerolinea (
-    Aerolinea_Codigo int NOT NULL,
+    Aerolinea_Codigo nvarchar(255) NOT NULL,
     Aerolinea_Nombre nvarchar(510) NULL,
     Aerolinea_Pais nvarchar(510) NULL,
     Aerolinea_Alianza bigint NULL,
@@ -235,9 +235,9 @@ GO
 CREATE TABLE TP_APROBADO.Vuelo (
     Vuelo_Codigo bigint NOT NULL,
     Vuelo_Fecha_Salida date NULL,
-    Vuelo_Horario_Salida time NULL,
+    Vuelo_Horario_Salida nvarchar(50),
     Vuelo_Fecha_Llegada date NULL,
-    Vuelo_Horario_Llegada time NULL,
+    Vuelo_Horario_Llegada nvarchar(50),
     Vuelo_Duracion int NULL,
     Vuelo_Precio decimal(18,2) NULL,
     Vuelo_Incluye_Carry bit NULL,
@@ -280,8 +280,8 @@ CREATE TABLE TP_APROBADO.Solicitud (
     Solicitud_Cant_Pax int NULL,
     Solicitud_Observaciones nvarchar(max) NULL,
     Solicitud_Presupuesto_Estimado decimal(18,2) NULL,
-    Solicitud_Cliente_Dni bigint NULL,
-    Solicitud_Cliente_Mail bigint NULL,
+    Solicitud_Cliente_Dni nvarchar(255) NULL,
+    Solicitud_Cliente_Mail nvarchar(255) NULL,
     Solicitud_Agente bigint NULL,
     Solicitud_Encuesta bigint NULL,
     CONSTRAINT PK_Solicitud PRIMARY KEY (Solicitud_Nro_Solicitud),
@@ -364,7 +364,8 @@ CREATE TABLE TP_APROBADO.Venta (
     Venta_Descuento decimal(18,2) NULL,
     Venta_Importe_Total decimal(18,2) NULL,
     Venta_Agente bigint NULL,
-    Venta_Cliente bigint NULL,
+    Venta_Cliente_Dni nvarchar(510) NULL,
+    Venta_Cliente_Mail nvarchar(510) NULL,
     Venta_Propuesta bigint NULL,
     Venta_Encuesta bigint NULL,
     CONSTRAINT PK_Venta PRIMARY KEY (Venta_Nro_Venta),
