@@ -55,7 +55,7 @@ GO
 CREATE TABLE TP_APROBADO.Habitacion (
     Habitacion_Codigo bigint NOT NULL,
     Habitacion_Nombre nvarchar(510) NULL,
-    Habitacion_Descripcion nvarchar(510) NULL,
+    Habitacion_Descripcion nvarchar(max) NULL,
     Habitacion_Precio_Noche decimal(18,2) NULL,
     Habitacion_Precio decimal(18,2) NULL,
     Habitacion_Cantidad int NULL,
@@ -137,15 +137,15 @@ GO
 
 
 CREATE TABLE TP_APROBADO.Cliente (
-    Cliente_Dni nvarchar(510) NOT NULL,
-    Cliente_Mail nvarchar(510) NOT NULL,
-    Cliente_Nombre nvarchar(510) NULL,
-    Cliente_Apellido nvarchar(510) NULL,
-    Cliente_Tel nvarchar(510) NULL,
-    Cliente_Direccion nvarchar(510) NULL,
+    Cliente_Dni nvarchar(255) NOT NULL,
+    Cliente_Mail nvarchar(255) NOT NULL,
+    Cliente_Nombre nvarchar(255) NULL,
+    Cliente_Apellido nvarchar(255) NULL,
+    Cliente_Tel nvarchar(255) NULL,
+    Cliente_Direccion nvarchar(255) NULL,
     Cliente_Fecha_Nac date NULL,
-    Cliente_Localidad nvarchar(510) NULL,
-    Cliente_Provincia nvarchar(510) NULL,
+    Cliente_Localidad nvarchar(255) NULL,
+    Cliente_Provincia nvarchar(255) NULL,
     CONSTRAINT PK_Cliente PRIMARY KEY (Cliente_Dni, Cliente_Mail)
 );
 GO
@@ -155,7 +155,7 @@ GO
 CREATE TABLE TP_APROBADO.Encuesta (
     Encuesta_Codigo_Encuesta bigint NOT NULL,
     Encuesta_Fecha_Encuesta date NULL,
-    Encuesta_Comentarios varchar(max) NULL,
+    Encuesta_Comentarios nvarchar(max) NULL,
     CONSTRAINT PK_Encuesta PRIMARY KEY (Encuesta_Codigo_Encuesta)
 );
 GO
@@ -165,8 +165,8 @@ GO
 CREATE TABLE TP_APROBADO.Excursion (
     Excursion_Codigo bigint NOT NULL,
     Proveedor_Codigo bigint NULL,
-    Excursion_Nombre nvarchar(510) NULL,
-    Excursion_Descripcion nvarchar(510) NULL,
+    Excursion_Nombre nvarchar(255) NULL,
+    Excursion_Descripcion nvarchar(max) NULL,
     Excursion_Horario nvarchar(50) NULL,
     Excursion_Duracion int NULL,
     Excursion_Precio decimal(18,2) NULL,
@@ -181,8 +181,8 @@ CREATE TABLE TP_APROBADO.Excursion (
 CREATE TABLE TP_APROBADO.Aeropuerto (
     Aeropuerto_Codigo nvarchar(10) NOT NULL,
     Aeropuerto_Descripcion nvarchar(400) NULL,
-    Aeropuerto_Ciudad nvarchar(510) NULL,
-    Aeropuerto_Pais nvarchar(510) NULL,
+    Aeropuerto_Ciudad nvarchar(255) NULL,
+    Aeropuerto_Pais nvarchar(255) NULL,
     CONSTRAINT PK_Aeropuerto PRIMARY KEY (Aeropuerto_Codigo)
 );
 GO
@@ -191,11 +191,11 @@ GO
 
 CREATE TABLE TP_APROBADO.Agencia (
     Agencia_Nro_Agencia bigint NOT NULL,
-    Agencia_Direccion nvarchar(510) NULL,
-    Agencia_Telefono nvarchar(510) NULL,
-    Agencia_Mail nvarchar(510) NULL,
-    Agencia_Provincia nvarchar(510) NULL,
-    Agencia_Localidad nvarchar(510) NULL,
+    Agencia_Direccion nvarchar(255) NULL,
+    Agencia_Telefono nvarchar(255) NULL,
+    Agencia_Mail nvarchar(255) NULL,
+    Agencia_Provincia nvarchar(255) NULL,
+    Agencia_Localidad nvarchar(255) NULL,
     CONSTRAINT PK_Agencia PRIMARY KEY (Agencia_Nro_Agencia)
 );
 GO
@@ -216,13 +216,13 @@ GO
 
 CREATE TABLE TP_APROBADO.Hospedaje (
     Hospedaje_Codigo bigint NOT NULL,
-    Hospedaje_Ciudad nvarchar(510) NULL,
-    Hospedaje_Pais nvarchar(510) NULL,
-    Hospedaje_Nombre nvarchar(510) NULL,
-    Hospedaje_Direccion nvarchar(510) NULL,
+    Hospedaje_Ciudad nvarchar(255) NULL,
+    Hospedaje_Pais nvarchar(255) NULL,
+    Hospedaje_Nombre nvarchar(255) NULL,
+    Hospedaje_Direccion nvarchar(255) NULL,
     Hospedaje_Incluye_Desayuno bit NULL,
-    Hospedaje_Check_In nvarchar(1000) NULL,
-    Hospedaje_Check_Out nvarchar(1000) NULL,
+    Hospedaje_Check_In nvarchar(50) NULL,
+    Hospedaje_Check_Out nvarchar(50) NULL,
     Hospedaje_Precio_Total decimal(18,2) NULL,
     Hospedaje_Habitacion bigint NULL,
     Hospedaje_Cantidad_Habitaciones int NULL,
@@ -244,10 +244,11 @@ CREATE TABLE TP_APROBADO.Vuelo (
     Vuelo_Incluye_Valija bit NULL,
     Vuelo_Aeropuerto_Salida nvarchar(10) NULL,
     Vuelo_Aeropuerto_Llegada nvarchar(10) NULL,
-    Vuelo_Aerolinea_Codigo bigint NULL,
+    Vuelo_Aerolinea_Codigo nvarchar(255) NULL,
     CONSTRAINT PK_Vuelo PRIMARY KEY (Vuelo_Codigo),
     CONSTRAINT FK_Vuelo_Aeropuerto_Salida FOREIGN KEY (Vuelo_Aeropuerto_Salida) REFERENCES TP_APROBADO.Aeropuerto (Aeropuerto_Codigo),
-    CONSTRAINT FK_Vuelo_Aeropuerto_Llegada FOREIGN KEY (Vuelo_Aeropuerto_Llegada) REFERENCES TP_APROBADO.Aeropuerto (Aeropuerto_Codigo)
+    CONSTRAINT FK_Vuelo_Aeropuerto_Llegada FOREIGN KEY (Vuelo_Aeropuerto_Llegada) REFERENCES TP_APROBADO.Aeropuerto (Aeropuerto_Codigo),
+    CONSTRAINT FK_Vuelo_Aerolinea FOREIGN KEY (Vuelo_Aerolinea_Codigo) REFERENCES TP_APROBADO.Aerolinea (Aerolinea_Codigo)
 );
 
 -- ============================================================================
@@ -257,14 +258,14 @@ CREATE TABLE TP_APROBADO.Vuelo (
 CREATE TABLE TP_APROBADO.Agente (
     Agente_Legajo bigint NOT NULL,
     Agencia_Nro_Agencia bigint NULL,
-    Agente_Nombre nvarchar(510) NULL,
-    Agente_Apellido nvarchar(510) NULL,
+    Agente_Nombre nvarchar(255) NULL,
+    Agente_Apellido nvarchar(255) NULL,
     Agente_Fecha_Nac date NULL,
-    Agente_Telefono nvarchar(510) NULL,
-    Agente_Mail nvarchar(510) NULL,
-    Agente_Direccion nvarchar(510) NULL,
-    Agente_Provincia nvarchar(510) NULL,
-    Agente_Localidad nvarchar(510) NULL,
+    Agente_Telefono nvarchar(255) NULL,
+    Agente_Mail nvarchar(255) NULL,
+    Agente_Direccion nvarchar(255) NULL,
+    Agente_Provincia nvarchar(255) NULL,
+    Agente_Localidad nvarchar(255) NULL,
     CONSTRAINT PK_Agente PRIMARY KEY (Agente_Legajo),
     CONSTRAINT FK_Agente_Agencia FOREIGN KEY (Agencia_Nro_Agencia) REFERENCES TP_APROBADO.Agencia (Agencia_Nro_Agencia)
 );
@@ -286,7 +287,8 @@ CREATE TABLE TP_APROBADO.Solicitud (
     Solicitud_Encuesta bigint NULL,
     CONSTRAINT PK_Solicitud PRIMARY KEY (Solicitud_Nro_Solicitud),
     CONSTRAINT FK_Solicitud_Agente FOREIGN KEY (Solicitud_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo),
-    CONSTRAINT FK_Solicitud_Encuesta FOREIGN KEY (Solicitud_Encuesta) REFERENCES TP_APROBADO.Encuesta (Encuesta_Codigo_Encuesta)
+    CONSTRAINT FK_Solicitud_Encuesta FOREIGN KEY (Solicitud_Encuesta) REFERENCES TP_APROBADO.Encuesta (Encuesta_Codigo_Encuesta),
+    CONSTRAINT FK_Solicitud_Cliente FOREIGN KEY (Solicitud_Cliente_Dni, Solicitud_Cliente_Mail) REFERENCES TP_APROBADO.Cliente (Cliente_Dni, Cliente_Mail)
 );
 GO
 
@@ -348,8 +350,10 @@ CREATE TABLE TP_APROBADO.Detalle_Propuesta_Vuelo (
     Detalle_Propuesta_Vuelo_Cant_Pasajes int NULL,
     Detalle_Propuesta_Vuelo_Precio decimal(18,2) NULL,
     Detalle_Propuesta_Vuelo_Subtotal decimal(18,2) NULL,
+    Detalle_Propuesta_Codigo_Vuelo bigint NULL, 
     CONSTRAINT PK_Detalle_Propuesta_Vuelo PRIMARY KEY (Detalle_Propuesta_Vuelo_Cod),
-    CONSTRAINT FK_Detalle_Propuesta_Vuelo_Propuesta FOREIGN KEY (Detalle_Propuesta_Nro_Propuesta) REFERENCES TP_APROBADO.Propuesta (Propuesta_Nro_Propuesta)
+    CONSTRAINT FK_Detalle_Propuesta_Vuelo_Propuesta FOREIGN KEY (Detalle_Propuesta_Nro_Propuesta) REFERENCES TP_APROBADO.Propuesta (Propuesta_Nro_Propuesta),
+    CONSTRAINT FK_Detalle_Propuesta_Vuelo_Vuelo FOREIGN KEY (Detalle_Propuesta_Codigo_Vuelo) REFERENCES TP_APROBADO.Vuelo (Vuelo_Codigo)
 );
 GO
 
@@ -364,13 +368,14 @@ CREATE TABLE TP_APROBADO.Venta (
     Venta_Descuento decimal(18,2) NULL,
     Venta_Importe_Total decimal(18,2) NULL,
     Venta_Agente bigint NULL,
-    Venta_Cliente_Dni nvarchar(510) NULL,
-    Venta_Cliente_Mail nvarchar(510) NULL,
+    Venta_Cliente_Dni nvarchar(255) NULL,
+    Venta_Cliente_Mail nvarchar(255) NULL,
     Venta_Propuesta bigint NULL,
     Venta_Encuesta bigint NULL,
     CONSTRAINT PK_Venta PRIMARY KEY (Venta_Nro_Venta),
     CONSTRAINT FK_Venta_Agente FOREIGN KEY (Venta_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo),
-    CONSTRAINT FK_Venta_Propuesta FOREIGN KEY (Venta_Propuesta) REFERENCES TP_APROBADO.Propuesta (Propuesta_Nro_Propuesta)
+    CONSTRAINT FK_Venta_Propuesta FOREIGN KEY (Venta_Propuesta) REFERENCES TP_APROBADO.Propuesta (Propuesta_Nro_Propuesta),
+    CONSTRAINT FK_Venta_Cliente FOREIGN KEY (Venta_Cliente_Dni, Venta_Cliente_Mail) REFERENCES TP_APROBADO.Cliente (Cliente_Dni, Cliente_Mail)
 );
 GO
 
@@ -414,7 +419,7 @@ GO
 CREATE TABLE TP_APROBADO.Detalle_Venta_Vuelo (
     Detalle_Venta_Vuelo_Cod bigint NOT NULL,
     Detalle_Venta_Vuelo_Cantidad_Pasajes int NULL,
-    Detalle_Venta_Vuelo_Preco_Unitano decimal(18,2) NULL,
+    Detalle_Venta_Vuelo_Precio_Unitario decimal(18,2) NULL,
     Detalle_Venta_Vuelo_Subtotal decimal(18,2) NULL,
     Detalle_Venta_Vuelo_Cod_Reserva nvarchar(255) NULL,
     Detalle_Venta_Nro_Venta bigint NULL,
