@@ -52,19 +52,6 @@ GO
 
 
 
-CREATE TABLE TP_APROBADO.Habitacion (
-    Habitacion_Codigo bigint NOT NULL,
-    Habitacion_Nombre nvarchar(510) NULL,
-    Habitacion_Descripcion nvarchar(max) NULL,
-    Habitacion_Precio_Noche decimal(18,2) NULL,
-    Habitacion_Precio decimal(18,2) NULL,
-    Habitacion_Cantidad int NULL,
-    CONSTRAINT PK_Habitacion PRIMARY KEY (Habitacion_Codigo)
-);
-GO
-
-
-
 CREATE TABLE TP_APROBADO.Localidad (
     Localidad_Codigo bigint NOT NULL,
     Localidad_Nombre nvarchar(400) NULL,
@@ -117,10 +104,11 @@ CREATE TABLE TP_APROBADO.Provincia (
 CREATE TABLE TP_APROBADO.Aerolinea (
     Aerolinea_Codigo nvarchar(255) NOT NULL,
     Aerolinea_Nombre nvarchar(510) NULL,
-    Aerolinea_Pais nvarchar(510) NULL,
+    Aerolinea_Pais bigint NULL,
     Aerolinea_Alianza bigint NULL,
     CONSTRAINT PK_Aerolinea PRIMARY KEY (Aerolinea_Codigo),
-    CONSTRAINT FK_Aerolinea_Alianza FOREIGN KEY (Aerolinea_Alianza) REFERENCES TP_APROBADO.Alianza (Alianza_Codigo)
+    CONSTRAINT FK_Aerolinea_Alianza FOREIGN KEY (Aerolinea_Alianza) REFERENCES TP_APROBADO.Alianza (Alianza_Codigo),
+    CONSTRAINT FK_Aerolinea_Pais FOREIGN KEY (Aerolinea_Pais) REFERENCES TP_APROBADO.Pais (Pais_Codigo)
 );
 GO
 
@@ -130,7 +118,9 @@ CREATE TABLE TP_APROBADO.Ciudad (
     Ciudad_Codigo bigint NOT NULL,
     Ciudad_Nombre nvarchar(400) NULL,
     Ciudad_es_capital bit NULL, -- Representación de bool en SQL Server
-    CONSTRAINT PK_Ciudad PRIMARY KEY (Ciudad_Codigo)
+    Ciudad_Pais bigint NULL,
+    CONSTRAINT PK_Ciudad PRIMARY KEY (Ciudad_Codigo),
+    CONSTRAINT FK_Ciudad_Pais FOREIGN KEY (Ciudad_Pais) REFERENCES TP_APROBADO.Pais (Pais_Codigo)
 );
 GO
 
@@ -144,9 +134,11 @@ CREATE TABLE TP_APROBADO.Cliente (
     Cliente_Tel nvarchar(255) NULL,
     Cliente_Direccion nvarchar(255) NULL,
     Cliente_Fecha_Nac date NULL,
-    Cliente_Localidad nvarchar(255) NULL,
-    Cliente_Provincia nvarchar(255) NULL,
-    CONSTRAINT PK_Cliente PRIMARY KEY (Cliente_Dni, Cliente_Mail)
+    Cliente_Localidad bigint NULL,
+    Cliente_Provincia bigint NULL,
+    CONSTRAINT PK_Cliente PRIMARY KEY (Cliente_Dni, Cliente_Mail),
+    CONSTRAINT FK_Cliente_Localidad FOREIGN KEY (Cliente_Localidad) REFERENCES TP_APROBADO.Localidad (Localidad_Codigo),
+    CONSTRAINT FK_Cliente_Provincia FOREIGN KEY (Cliente_Provincia) REFERENCES TP_APROBADO.Provincia (Provincia_Codigo)
 );
 GO
 
@@ -181,9 +173,11 @@ CREATE TABLE TP_APROBADO.Excursion (
 CREATE TABLE TP_APROBADO.Aeropuerto (
     Aeropuerto_Codigo nvarchar(10) NOT NULL,
     Aeropuerto_Descripcion nvarchar(400) NULL,
-    Aeropuerto_Ciudad nvarchar(255) NULL,
-    Aeropuerto_Pais nvarchar(255) NULL,
-    CONSTRAINT PK_Aeropuerto PRIMARY KEY (Aeropuerto_Codigo)
+    Aeropuerto_Ciudad bigint NULL,
+    Aeropuerto_Pais bigint NULL,
+    CONSTRAINT PK_Aeropuerto PRIMARY KEY (Aeropuerto_Codigo),
+    CONSTRAINT FK_Aeropuerto_Ciudad FOREIGN KEY (Aeropuerto_Ciudad) REFERENCES TP_APROBADO.Ciudad (Ciudad_Codigo),
+    CONSTRAINT FK_Aeropuerto_Pais FOREIGN KEY (Aeropuerto_Pais) REFERENCES TP_APROBADO.Pais (Pais_Codigo)
 );
 GO
 
@@ -194,9 +188,11 @@ CREATE TABLE TP_APROBADO.Agencia (
     Agencia_Direccion nvarchar(255) NULL,
     Agencia_Telefono nvarchar(255) NULL,
     Agencia_Mail nvarchar(255) NULL,
-    Agencia_Provincia nvarchar(255) NULL,
-    Agencia_Localidad nvarchar(255) NULL,
-    CONSTRAINT PK_Agencia PRIMARY KEY (Agencia_Nro_Agencia)
+    Agencia_Provincia bigint NULL,
+    Agencia_Localidad bigint NULL,
+    CONSTRAINT PK_Agencia PRIMARY KEY (Agencia_Nro_Agencia),
+    CONSTRAINT FK_Agencia_Provincia FOREIGN KEY (Agencia_Provincia) REFERENCES TP_APROBADO.Provincia (Provincia_Codigo),
+    CONSTRAINT FK_Agencia_Localidad FOREIGN KEY (Agencia_Localidad) REFERENCES TP_APROBADO.Localidad (Localidad_Codigo)
 );
 GO
 
@@ -216,17 +212,16 @@ GO
 
 CREATE TABLE TP_APROBADO.Hospedaje (
     Hospedaje_Codigo bigint NOT NULL,
-    Hospedaje_Ciudad nvarchar(255) NULL,
-    Hospedaje_Pais nvarchar(255) NULL,
+    Hospedaje_Ciudad bigint NULL,
+    Hospedaje_Pais bigint NULL,
     Hospedaje_Nombre nvarchar(255) NULL,
     Hospedaje_Direccion nvarchar(255) NULL,
     Hospedaje_Incluye_Desayuno bit NULL,
     Hospedaje_Check_In nvarchar(50) NULL,
     Hospedaje_Check_Out nvarchar(50) NULL,
-    Hospedaje_Precio_Total decimal(18,2) NULL,
-    Hospedaje_Habitacion bigint NULL,
-    Hospedaje_Cantidad_Habitaciones int NULL,
-    CONSTRAINT PK_Hospedaje PRIMARY KEY (Hospedaje_Codigo)
+    CONSTRAINT PK_Hospedaje PRIMARY KEY (Hospedaje_Codigo),
+    CONSTRAINT FK_Hospedaje_Ciudad FOREIGN KEY (Hospedaje_Ciudad) REFERENCES TP_APROBADO.Ciudad (Ciudad_Codigo),
+    CONSTRAINT FK_Hospedaje_Pais FOREIGN KEY (Hospedaje_Pais) REFERENCES TP_APROBADO.Pais (Pais_Codigo)
 );
 GO
 
@@ -255,19 +250,37 @@ CREATE TABLE TP_APROBADO.Vuelo (
 -- 4. TABLAS ESTRUCTURALES COMPLEJAS Y DOCUMENTOS (Nivel 4)
 -- ============================================================================
 
+CREATE TABLE TP_APROBADO.Habitacion (
+    Habitacion_Codigo bigint NOT NULL,
+    Habitacion_Nombre nvarchar(510) NULL,
+    Habitacion_Descripcion nvarchar(max) NULL,
+    Habitacion_Precio_Noche decimal(18,2) NULL,
+    Habitacion_Precio decimal(18,2) NULL,
+    Habitacion_Cantidad int NULL,
+    Habitacion_Hospedaje bigint NULL,
+    CONSTRAINT PK_Habitacion PRIMARY KEY (Habitacion_Codigo),
+    CONSTRAINT FK_Habitacion_Hospedaje FOREIGN KEY (Habitacion_Hospedaje) REFERENCES TP_APROBADO.Hospedaje (Hospedaje_Codigo)
+);
+GO     
+
+
+
 CREATE TABLE TP_APROBADO.Agente (
     Agente_Legajo bigint NOT NULL,
     Agencia_Nro_Agencia bigint NULL,
     Agente_Nombre nvarchar(255) NULL,
     Agente_Apellido nvarchar(255) NULL,
+    Agente_DNI nvarchar(255) NULL,
     Agente_Fecha_Nac date NULL,
     Agente_Telefono nvarchar(255) NULL,
     Agente_Mail nvarchar(255) NULL,
     Agente_Direccion nvarchar(255) NULL,
-    Agente_Provincia nvarchar(255) NULL,
-    Agente_Localidad nvarchar(255) NULL,
+    Agente_Provincia bigint NULL,
+    Agente_Localidad bigint NULL,
     CONSTRAINT PK_Agente PRIMARY KEY (Agente_Legajo),
-    CONSTRAINT FK_Agente_Agencia FOREIGN KEY (Agencia_Nro_Agencia) REFERENCES TP_APROBADO.Agencia (Agencia_Nro_Agencia)
+    CONSTRAINT FK_Agente_Agencia FOREIGN KEY (Agencia_Nro_Agencia) REFERENCES TP_APROBADO.Agencia (Agencia_Nro_Agencia),
+    CONSTRAINT FK_Agente_Provincia FOREIGN KEY (Agente_Provincia) REFERENCES TP_APROBADO.Provincia (Provincia_Codigo),
+    CONSTRAINT FK_Agente_Localidad FOREIGN KEY (Agente_Localidad) REFERENCES TP_APROBADO.Localidad (Localidad_Codigo)
 );
 GO
 
@@ -317,11 +330,12 @@ CREATE TABLE TP_APROBADO.Propuesta (
     Propuesta_Subtotal decimal(18,2) NULL,
     Propuesta_Descuento decimal(18,2) NULL,
     Propuesta_Importe_Total decimal(18,2) NULL,
-    Propuesta_Estado nvarchar(255) NULL,
+    Propuesta_Estado bigint NULL,
     Propuesta_Agente bigint NULL,
     CONSTRAINT PK_Propuesta PRIMARY KEY (Propuesta_Nro_Propuesta),
     CONSTRAINT FK_Propuesta_Solicitud FOREIGN KEY (Solicitud_Nro_Solicitud) REFERENCES TP_APROBADO.Solicitud (Solicitud_Nro_Solicitud),
-    CONSTRAINT FK_Propuesta_Agente FOREIGN KEY (Propuesta_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo)
+    CONSTRAINT FK_Propuesta_Agente FOREIGN KEY (Propuesta_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo),
+    CONSTRAINT FK_Propuesta_Estado FOREIGN KEY (Propuesta_Estado) REFERENCES TP_APROBADO.Estado (Estado_Codigo)
 );
 GO
 
@@ -362,8 +376,8 @@ GO
 CREATE TABLE TP_APROBADO.Venta (
     Venta_Nro_Venta bigint NOT NULL,
     Venta_Fecha_Venta date NULL,
-    Venta_Canal_Venta nvarchar(255) NULL,
-    Venta_Medio_Pago nvarchar(255) NULL,
+    Venta_Canal_Venta bigint NULL,
+    Venta_Medio_Pago bigint NULL,
     Venta_Subtotal decimal(18,2) NULL,
     Venta_Descuento decimal(18,2) NULL,
     Venta_Importe_Total decimal(18,2) NULL,
@@ -375,7 +389,10 @@ CREATE TABLE TP_APROBADO.Venta (
     CONSTRAINT PK_Venta PRIMARY KEY (Venta_Nro_Venta),
     CONSTRAINT FK_Venta_Agente FOREIGN KEY (Venta_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo),
     CONSTRAINT FK_Venta_Propuesta FOREIGN KEY (Venta_Propuesta) REFERENCES TP_APROBADO.Propuesta (Propuesta_Nro_Propuesta),
-    CONSTRAINT FK_Venta_Cliente FOREIGN KEY (Venta_Cliente_Dni, Venta_Cliente_Mail) REFERENCES TP_APROBADO.Cliente (Cliente_Dni, Cliente_Mail)
+    CONSTRAINT FK_Venta_Cliente FOREIGN KEY (Venta_Cliente_Dni, Venta_Cliente_Mail) REFERENCES TP_APROBADO.Cliente (Cliente_Dni, Cliente_Mail),
+    CONSTRAINT FK_Venta_Canal_Venta FOREIGN KEY (Venta_Canal_Venta) REFERENCES TP_APROBADO.Canal_Venta (Canal_Venta_Codigo),
+    CONSTRAINT FK_Venta_Medio_Pago FOREIGN KEY (Venta_Medio_Pago) REFERENCES TP_APROBADO.Medio_Pago (Medio_Pago_Codigo)
+
 );
 GO
 
