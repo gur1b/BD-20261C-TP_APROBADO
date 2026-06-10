@@ -120,7 +120,7 @@ GO
 CREATE TABLE TP_APROBADO.Ciudad (
     Ciudad_Codigo bigint NOT NULL,
     Ciudad_Nombre nvarchar(400) NULL,
-    Ciudad_es_capital bit NULL, -- Representación de bool en SQL Server
+    Ciudad_es_capital bit NULL,
     Ciudad_Pais bigint NULL,
     CONSTRAINT PK_Ciudad PRIMARY KEY (Ciudad_Codigo),
     CONSTRAINT FK_Ciudad_Pais FOREIGN KEY (Ciudad_Pais) REFERENCES TP_APROBADO.Pais (Pais_Codigo)
