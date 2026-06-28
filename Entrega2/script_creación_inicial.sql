@@ -151,6 +151,7 @@ CREATE TABLE TP_APROBADO.Encuesta (
     Encuesta_Codigo_Encuesta bigint NOT NULL,
     Encuesta_Fecha_Encuesta date NULL,
     Encuesta_Comentarios nvarchar(max) NULL,
+    Encuesta_Agente bigint NULL,
     CONSTRAINT PK_Encuesta PRIMARY KEY (Encuesta_Codigo_Encuesta)
 );
 GO
@@ -281,6 +282,12 @@ CREATE TABLE TP_APROBADO.Agente (
 );
 GO
 
+-- La encuesta se vincula directamente al agente (la maestra trae el agente junto a la
+-- encuesta). La FK se agrega aca porque Agente se crea despues de Encuesta.
+ALTER TABLE TP_APROBADO.Encuesta
+    ADD CONSTRAINT FK_Encuesta_Agente FOREIGN KEY (Encuesta_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo);
+GO
+
 
 
 CREATE TABLE TP_APROBADO.Solicitud (
@@ -294,10 +301,8 @@ CREATE TABLE TP_APROBADO.Solicitud (
     Solicitud_Cliente_Dni nvarchar(255) NULL,
     Solicitud_Cliente_Mail nvarchar(255) NULL,
     Solicitud_Agente bigint NULL,
-    Solicitud_Encuesta bigint NULL,
     CONSTRAINT PK_Solicitud PRIMARY KEY (Solicitud_Nro_Solicitud),
     CONSTRAINT FK_Solicitud_Agente FOREIGN KEY (Solicitud_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo),
-    CONSTRAINT FK_Solicitud_Encuesta FOREIGN KEY (Solicitud_Encuesta) REFERENCES TP_APROBADO.Encuesta (Encuesta_Codigo_Encuesta),
     CONSTRAINT FK_Solicitud_Cliente FOREIGN KEY (Solicitud_Cliente_Dni, Solicitud_Cliente_Mail) REFERENCES TP_APROBADO.Cliente (Cliente_Dni, Cliente_Mail)
 );
 GO
@@ -382,7 +387,6 @@ CREATE TABLE TP_APROBADO.Venta (
     Venta_Cliente_Dni nvarchar(255) NULL,
     Venta_Cliente_Mail nvarchar(255) NULL,
     Venta_Propuesta bigint NULL,
-    Venta_Encuesta bigint NULL,
     CONSTRAINT PK_Venta PRIMARY KEY (Venta_Nro_Venta),
     CONSTRAINT FK_Venta_Agente FOREIGN KEY (Venta_Agente) REFERENCES TP_APROBADO.Agente (Agente_Legajo),
     CONSTRAINT FK_Venta_Propuesta FOREIGN KEY (Venta_Propuesta) REFERENCES TP_APROBADO.Propuesta (Propuesta_Nro_Propuesta),
@@ -657,14 +661,14 @@ CREATE OR ALTER PROCEDURE TP_APROBADO.Migrar_Encuesta
 AS
 BEGIN
     WITH Dedup AS (
-        SELECT Encuesta_Codigo_Encuesta, Encuesta_Fecha_Encuesta, Encuesta_Comentarios,
+        SELECT Encuesta_Codigo_Encuesta, Encuesta_Fecha_Encuesta, Encuesta_Comentarios, Agente_Legajo,
                ROW_NUMBER() OVER (PARTITION BY Encuesta_Codigo_Encuesta
                                   ORDER BY CASE WHEN Encuesta_Fecha_Encuesta IS NULL THEN 1 ELSE 0 END) AS rn
         FROM gd_esquema.Maestra
         WHERE Encuesta_Codigo_Encuesta IS NOT NULL
     )
-    INSERT INTO TP_APROBADO.Encuesta (Encuesta_Codigo_Encuesta, Encuesta_Fecha_Encuesta, Encuesta_Comentarios)
-    SELECT Encuesta_Codigo_Encuesta, Encuesta_Fecha_Encuesta, Encuesta_Comentarios
+    INSERT INTO TP_APROBADO.Encuesta (Encuesta_Codigo_Encuesta, Encuesta_Fecha_Encuesta, Encuesta_Comentarios, Encuesta_Agente)
+    SELECT Encuesta_Codigo_Encuesta, Encuesta_Fecha_Encuesta, Encuesta_Comentarios, Agente_Legajo
     FROM Dedup WHERE rn = 1;
 END
 GO
@@ -807,7 +811,7 @@ BEGIN
     WITH Dedup AS (
         SELECT Solicitud_Nro_Solicitud, Solicitud_Fecha_Solicitud, Solicitud_Fecha_Inicio_Tentativa,
                Solicitud_Fecha_Fin_Tentativa, Solicitud_Cant_Pax, Solicitud_Observaciones,
-               Solicitud_Presupuesto_Estimado, Cliente_Dni, Cliente_Mail, Agente_Legajo, Encuesta_Codigo_Encuesta,
+               Solicitud_Presupuesto_Estimado, Cliente_Dni, Cliente_Mail, Agente_Legajo,
                ROW_NUMBER() OVER (PARTITION BY Solicitud_Nro_Solicitud
                                   ORDER BY CASE WHEN Solicitud_Fecha_Solicitud IS NULL THEN 1 ELSE 0 END) AS rn
         FROM gd_esquema.Maestra
@@ -817,10 +821,10 @@ BEGIN
         Solicitud_Nro_Solicitud, Solicitud_Fecha_solicitud, Solicitud_Fecha_Inicio_Tentativa,
         Solicitud_Fecha_Fin_tentativa, Solicitud_Cant_Pax, Solicitud_Observaciones,
         Solicitud_Presupuesto_Estimado, Solicitud_Cliente_Dni, Solicitud_Cliente_Mail,
-        Solicitud_Agente, Solicitud_Encuesta)
+        Solicitud_Agente)
     SELECT Solicitud_Nro_Solicitud, Solicitud_Fecha_Solicitud, Solicitud_Fecha_Inicio_Tentativa,
            Solicitud_Fecha_Fin_Tentativa, Solicitud_Cant_Pax, Solicitud_Observaciones,
-           Solicitud_Presupuesto_Estimado, Cliente_Dni, Cliente_Mail, Agente_Legajo, Encuesta_Codigo_Encuesta
+           Solicitud_Presupuesto_Estimado, Cliente_Dni, Cliente_Mail, Agente_Legajo
     FROM Dedup WHERE rn = 1;
 END
 GO
@@ -877,7 +881,7 @@ BEGIN
     WITH Dedup AS (
         SELECT Venta_Nro_Venta, Venta_Fecha_Venta, Venta_Canal_Venta, Venta_Medio_Pago,
                Venta_Subtotal, Venta_Descuento, Venta_Importe_Total, Agente_Legajo,
-               Cliente_Dni, Cliente_Mail, Propuesta_Nro_Propuesta, Encuesta_Codigo_Encuesta,
+               Cliente_Dni, Cliente_Mail, Propuesta_Nro_Propuesta,
                ROW_NUMBER() OVER (PARTITION BY Venta_Nro_Venta
                                   ORDER BY CASE WHEN Venta_Fecha_Venta IS NULL THEN 1 ELSE 0 END) AS rn
         FROM gd_esquema.Maestra
@@ -886,10 +890,10 @@ BEGIN
     INSERT INTO TP_APROBADO.Venta (
         Venta_Nro_Venta, Venta_Fecha_Venta, Venta_Canal_Venta, Venta_Medio_Pago, Venta_Subtotal,
         Venta_Descuento, Venta_Importe_Total, Venta_Agente, Venta_Cliente_Dni, Venta_Cliente_Mail,
-        Venta_Propuesta, Venta_Encuesta)
+        Venta_Propuesta)
     SELECT D.Venta_Nro_Venta, D.Venta_Fecha_Venta, CV.Canal_Venta_Codigo, MP.Medio_Pago_Codigo, D.Venta_Subtotal,
            D.Venta_Descuento, D.Venta_Importe_Total, D.Agente_Legajo, D.Cliente_Dni, D.Cliente_Mail,
-           D.Propuesta_Nro_Propuesta, D.Encuesta_Codigo_Encuesta
+           D.Propuesta_Nro_Propuesta
     FROM Dedup D
     LEFT JOIN TP_APROBADO.Canal_Venta CV ON CV.Canal_Venta_Nombre = D.Venta_Canal_Venta
     LEFT JOIN TP_APROBADO.Medio_Pago  MP ON MP.Medio_Pago_Nombre  = D.Venta_Medio_Pago
@@ -1145,7 +1149,6 @@ BEGIN
     EXEC TP_APROBADO.Migrar_Aeropuerto;
     EXEC TP_APROBADO.Migrar_Agencia;
     EXEC TP_APROBADO.Migrar_Cliente;
-    EXEC TP_APROBADO.Migrar_Encuesta;
     EXEC TP_APROBADO.Migrar_Excursion;
     EXEC TP_APROBADO.Migrar_Hospedaje;
 END
@@ -1155,6 +1158,7 @@ CREATE OR ALTER PROCEDURE TP_APROBADO.Migrar_Nivel_3
 AS
 BEGIN
     EXEC TP_APROBADO.Migrar_Agente;
+    EXEC TP_APROBADO.Migrar_Encuesta;
     EXEC TP_APROBADO.Migrar_Habitacion;
     EXEC TP_APROBADO.Migrar_Vuelo;
     EXEC TP_APROBADO.Migrar_Detalle_Encuesta;
